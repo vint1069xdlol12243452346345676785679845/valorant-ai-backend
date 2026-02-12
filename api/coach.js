@@ -48,8 +48,14 @@ export default async function handler(req, res) {
       })
     });
 
-    const data = await response.json();
-    const advice = data.choices?.[0]?.message?.content || "No advice generated";
+const data = await response.json();
+
+if (!response.ok) {
+  return res.status(500).json({ error: data });
+}
+
+const advice = data.choices?.[0]?.message?.content || "No advice generated";
+
 
     return res.status(200).json({ advice });
 
