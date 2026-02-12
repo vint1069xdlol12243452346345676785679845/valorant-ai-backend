@@ -43,12 +43,32 @@ Round Type: ${round}
 
     const data = await response.json();
 
-    const advice = data.choices?.[0]?.message?.content || "No advice generated";
+    console.log("OPENROUTER RESPONSE:", JSON.stringify(data));
+
+    if (!response.ok) {
+      return res.status(500).json({ error: data });
+    }
+
+    const advice =
+      data.choices &&
+      data.choices[0] &&
+      data.choices[0].message &&
+      data.choices[0].message.content
+        ? data.choices[0].message.content
+        : null;
+
+    if (!advice) {
+      return res.status(200).json({
+        error: "No advice generated",
+        fullResponse: data
+      });
+    }
 
     return res.status(200).json({ advice });
 
   } catch (error) {
-    console.error(error);
+    console.error("SERVER ERROR:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 }
+
