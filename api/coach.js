@@ -1,3 +1,51 @@
 export default async function handler(req, res) {
-  res.status(200).json({ message: "Backend funcionando 🚀" });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Only POST allowed" });
+  }
+
+  const { agent, enemies, map, round } = req.body;
+
+  try {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: "You are a professional Valorant tactical coach. Give short, tactical, round-based advice. Be concise and structured."
+          },
+          {
+            role: "user",
+            content: `
+            Situation:
+            Map: ${map}
+            My Agent: ${agent}
+            Enemy Agents: ${enemies}
+            Round Type: ${round}
+
+            Give:
+            - Main threat
+            - Best entry approach
+            - Common mistake to avoid
+            `
+          }
+        ],
+        temperature: 0.7
+      })
+    });
+
+    const data = await response.json();
+
+    const advice = data.choices[0].message.content;
+
+    res.status(200).json({ advice });
+
+  } catch (error) {
+    res.status(500).json({ error: "Error generating advice" });
+  }
 }
