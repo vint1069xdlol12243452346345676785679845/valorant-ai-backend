@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-  // 👇 CORS headers
+  // CORS
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -15,14 +15,16 @@ export default async function handler(req, res) {
   const { agent, enemies, map, round } = req.body;
 
   try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
+        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        "HTTP-Referer": "https://valorant-ai-backend.vercel.app",
+        "X-Title": "Valorant Tactical AI"
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "openai/gpt-4o-mini",
         messages: [
           {
             role: "system",
@@ -48,14 +50,13 @@ export default async function handler(req, res) {
       })
     });
 
-const data = await response.json();
+    const data = await response.json();
 
-if (!response.ok) {
-  return res.status(500).json({ error: data });
-}
+    if (!response.ok) {
+      return res.status(500).json({ error: data });
+    }
 
-const advice = data.choices?.[0]?.message?.content || "No advice generated";
-
+    const advice = data.choices?.[0]?.message?.content || "No advice generated";
 
     return res.status(200).json({ advice });
 
