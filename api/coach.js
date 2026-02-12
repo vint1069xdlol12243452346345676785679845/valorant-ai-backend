@@ -13,34 +13,41 @@ export default async function handler(req, res) {
   }
 
   const { agent, enemies, map, round, mode } = req.body;
-  
-let systemPrompt = "";
-let userPrompt = "";
 
-if (mode === "pro") {
-  systemPrompt = "You are a high-level competitive Valorant coach. Provide deeper round analysis.";
-  
-  userPrompt = `
-  Map: ${map}
-  Agent: ${agent}
-  Enemies: ${enemies}
-  Round: ${round}
+  let systemPrompt = "";
+  let userPrompt = "";
 
-  Give deeper tactical analysis and adaptation advice.
-  `;
-} else {
-  systemPrompt = "You are a high-elo Valorant coach. Give ultra-short tactical advice.";
-  
-  userPrompt = `
-  Map: ${map}
-  Agent: ${agent}
-  Enemies: ${enemies}
-  Round: ${round}
+  if (mode === "pro") {
+    systemPrompt = "You are a high-level competitive Valorant coach (Immortal/Radiant). Provide deep tactical round analysis.";
 
-  Give short bullet advice.
-  `;
-}
+    userPrompt = `
+Map: ${map}
+Agent: ${agent}
+Enemies: ${enemies}
+Round: ${round}
 
+Provide:
+- Main tactical risk
+- Best entry plan
+- Alternative adaptation
+- Common mistake in this elo
+- Mental focus tip
+`;
+  } else {
+    systemPrompt = "You are a high-elo Valorant coach. Give ultra-short round-ready tactical advice. Max 4 bullet points.";
+
+    userPrompt = `
+Map: ${map}
+Agent: ${agent}
+Enemies: ${enemies}
+Round: ${round}
+
+Give:
+- Main threat
+- Best entry approach
+- Common mistake
+`;
+  }
 
   try {
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -53,22 +60,9 @@ if (mode === "pro") {
       },
       body: JSON.stringify({
         model: "openai/gpt-4o-mini",
-      messages: [
-  { role: "system", content: systemPrompt },
-  { role: "user", content: userPrompt }
-],
-            Situation:
-            Map: ${map}
-            My Agent: ${agent}
-            Enemy Agents: ${enemies}
-            Round Type: ${round}
-
-            Give:
-            - Main threat
-            - Best entry approach
-            - Common mistake to avoid
-            `
-          }
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt }
         ],
         temperature: 0.7
       })
@@ -85,6 +79,7 @@ if (mode === "pro") {
     return res.status(200).json({ advice });
 
   } catch (error) {
-    return res.status(500).json({ error: "Error generating advice" });
+    return res.status(500).json({ error: "Server error" });
   }
 }
+
