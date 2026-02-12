@@ -49,16 +49,26 @@ Round Type: ${round}
       return res.status(500).json({ error: data });
     }
 
-    const advice =
-      data.choices &&
-      data.choices[0] &&
-      data.choices[0].message &&
-      data.choices[0].message.content
-        ? data.choices[0].message.content
-        : null;
+    let advice = null;
+
+    // 🔥 Soporta múltiples formatos
+    if (data.choices && data.choices[0]) {
+      if (data.choices[0].message && data.choices[0].message.content) {
+        advice = data.choices[0].message.content;
+      } else if (data.choices[0].text) {
+        advice = data.choices[0].text;
+      }
+    }
+
+    if (!advice && data.output_text) {
+      advice = data.output_text;
+    }
 
     if (!advice) {
-      return res.status(200).json({ error: "No advice generated" });
+      return res.status(200).json({
+        error: "No advice generated",
+        raw: data
+      });
     }
 
     return res.status(200).json({ advice });
@@ -68,4 +78,5 @@ Round Type: ${round}
     return res.status(500).json({ error: "Internal server error" });
   }
 }
+
 
