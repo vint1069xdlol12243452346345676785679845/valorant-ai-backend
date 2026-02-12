@@ -12,7 +12,35 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Only POST allowed" });
   }
 
-  const { agent, enemies, map, round } = req.body;
+  const { agent, enemies, map, round, mode } = req.body;
+  
+let systemPrompt = "";
+let userPrompt = "";
+
+if (mode === "pro") {
+  systemPrompt = "You are a high-level competitive Valorant coach. Provide deeper round analysis.";
+  
+  userPrompt = `
+  Map: ${map}
+  Agent: ${agent}
+  Enemies: ${enemies}
+  Round: ${round}
+
+  Give deeper tactical analysis and adaptation advice.
+  `;
+} else {
+  systemPrompt = "You are a high-elo Valorant coach. Give ultra-short tactical advice.";
+  
+  userPrompt = `
+  Map: ${map}
+  Agent: ${agent}
+  Enemies: ${enemies}
+  Round: ${round}
+
+  Give short bullet advice.
+  `;
+}
+
 
   try {
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -25,14 +53,10 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "openai/gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content: "You are an Immortal/Radiant Valorant coach. Give ultra-short round-ready tactical advice. Max 4 bullet points. No explanations. Be decisive and confident."
-          },
-          {
-            role: "user",
-            content: `Keep it sharp. No paragraphs. Only actionable decisions.
+      messages: [
+  { role: "system", content: systemPrompt },
+  { role: "user", content: userPrompt }
+],
             Situation:
             Map: ${map}
             My Agent: ${agent}
