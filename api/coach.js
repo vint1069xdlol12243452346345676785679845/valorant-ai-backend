@@ -30,7 +30,9 @@ Round Type: ${round}
       method: "POST",
       headers: {
         "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://valorant-ai-backend.vercel.app",
+        "X-Title": "Valorant Tactical AI"
       },
       body: JSON.stringify({
         model: "openai/gpt-4o-mini",
@@ -42,8 +44,6 @@ Round Type: ${round}
     });
 
     const data = await response.json();
-
-    console.log("OPENROUTER RESPONSE:", JSON.stringify(data));
 
     if (!response.ok) {
       return res.status(500).json({ error: data });
@@ -58,10 +58,7 @@ Round Type: ${round}
         : null;
 
     if (!advice) {
-      return res.status(200).json({
-        error: "No advice generated",
-        fullResponse: data
-      });
+      return res.status(200).json({ error: "No advice generated" });
     }
 
     return res.status(200).json({ advice });
