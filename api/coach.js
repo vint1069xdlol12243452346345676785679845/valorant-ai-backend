@@ -28,7 +28,7 @@ export default async function handler(req, res) {
         messages: [
           {
             role: "system",
-            content: "You are a professional Valorant tactical coach. Give short, tactical, round-based advice. Be concise and structured."
+            content: "You are a high-elo Valorant coach. Give very short, round-ready tactical advice. Use bullet points. No long explanations. Max 6 lines total."
           },
           {
             role: "user",
