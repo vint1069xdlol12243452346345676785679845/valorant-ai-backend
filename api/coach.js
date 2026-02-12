@@ -16,8 +16,29 @@ export default async function handler(req, res) {
 
     const systemPrompt =
       mode === "pro"
-        ? "You are an Immortal/Radiant Valorant coach. Provide deep structured tactical analysis."
-        : "You are an Immortal Valorant coach. Give ultra-short round-ready tactical advice. Max 4 bullet points. No explanations.";
+        ? `
+You are an Immortal/Radiant level Valorant coach with 5000+ hours of competitive experience.
+
+Give structured tactical analysis with:
+- Main Threat
+- Win Condition
+- Entry Plan
+- Utility Usage
+- Adaptation if First Plan Fails
+- Mental Focus Tip
+
+Be concise but deep.
+No generic advice.
+Think like a pro IGL.
+`
+        : `
+You are an Immortal Valorant shot-caller.
+
+Give 4 ultra-direct round decisions.
+No explanations.
+No fluff.
+Pure actionable calls.
+`;
 
     const userPrompt = `
 Map: ${map}
@@ -39,7 +60,8 @@ Round Type: ${round}
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
-        ]
+        ],
+        temperature: mode === "pro" ? 0.7 : 0.4
       })
     });
 
@@ -49,26 +71,13 @@ Round Type: ${round}
       return res.status(500).json({ error: data });
     }
 
-    let advice = null;
-
-    // 🔥 Soporta múltiples formatos
-    if (data.choices && data.choices[0]) {
-      if (data.choices[0].message && data.choices[0].message.content) {
-        advice = data.choices[0].message.content;
-      } else if (data.choices[0].text) {
-        advice = data.choices[0].text;
-      }
-    }
-
-    if (!advice && data.output_text) {
-      advice = data.output_text;
-    }
+    const advice =
+      data.choices?.[0]?.message?.content ||
+      data.choices?.[0]?.text ||
+      null;
 
     if (!advice) {
-      return res.status(200).json({
-        error: "No advice generated",
-        raw: data
-      });
+      return res.status(200).json({ error: "No advice generated" });
     }
 
     return res.status(200).json({ advice });
